@@ -5,6 +5,7 @@ use App\Http\Requests\StoreUser;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 
 class UserController extends Controller {
 
@@ -13,12 +14,25 @@ class UserController extends Controller {
     {
 
         $this->middleware ('auth', [
-            'except'    => ['show', 'create', 'store']  //  不使用auth过滤的动作
+            'except'    => ['show', 'create', 'store', 'index', 'confirmEmail']  //  不使用auth过滤的动作
         ]);
 //
         $this->middleware('guest', [
             'only' => ['create']
         ]);
+
+    }
+
+    public function confirmEmail($token) {
+        $user = User::where('activation_token', $token)->firstOrFail();
+
+        $user->activated = true;
+        $user->activation_token = null;
+        $user->save();
+
+        Auth::login($user);
+        session()->flash('success', '恭喜你，激活成功！');
+        return redirect()->route('user.show', [$user]);
 
     }
 
@@ -46,9 +60,12 @@ class UserController extends Controller {
             'password' => bcrypt ($request->password)
         ]);
 
-        Auth::login ($user);
-        session ()->flash ('success', '欢迎,您将在这里开启一段新的旅程');
-        return redirect ()->route ('user.show',[$user]);
+        $this->sendEmailConfirmationTo ($user);
+        session()->flash('success', '验证邮件已发送到你的注册邮箱上，请注意查收。');
+        return redirect('/');
+//        Auth::login ($user);
+//        session ()->flash ('success', '欢迎,您将在这里开启一段新的旅程');
+//        return redirect ()->route ('user.show',[$user]);
     }
 
     public function edit(User $user) {
@@ -84,6 +101,21 @@ class UserController extends Controller {
         $user->delete ();
         session ()->flash ('success','删除用户成功');
         return back ();
+
+    }
+
+    protected function sendEmailConfirmationTo($user) {
+
+        $view = "email.confirm";
+        $data = compact ('user');
+        $from = "aufree@qq.com";
+        $name = 'Aufree';
+        $to = $user->email;
+        $subject = "感谢注册 Sample 应用！请确认你的邮箱。";
+
+        Mail::send($view, $data, function ($message) use ($from, $name, $to, $subject) {
+            $message->from($from, $name)->to($to)->subject($subject);
+        });
 
     }
 
