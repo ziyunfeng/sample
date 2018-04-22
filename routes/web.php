@@ -20,3 +20,8 @@ Route::get('/about', 'StaticPagesController@about')->name('about');
 Route::get('/signup', 'UserController@create')->name('signup');
 
 Route::resource('user', "UserController");
+
+
+Route::get('login', 'SessionsController@create')->name('login');    //  显示登录页
+Route::post('login', 'SessionsController@store')->name('login');   //  创建新回话（登录）
+Route::delete('logout', "SessionsController@destroy")->name('logout'); //  销毁登录
