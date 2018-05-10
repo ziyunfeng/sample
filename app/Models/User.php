@@ -43,4 +43,14 @@ class User extends Authenticatable
             $user->activation_token = str_random (30);
         });
     }
+
+    //  关联定义    一个用户拥有多条微博
+    public function statuses(){
+        return $this->hasMany (Status::class);
+    }
+
+    public function feed() {
+        return $this->statuses ()->orderBy ('created_at', 'desc');
+
+    }
 }

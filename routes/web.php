@@ -21,7 +21,7 @@ Route::get('/signup', 'UserController@create')->name('signup');
 Route::get('/signup/confirm/{token}', 'UserController@confirmEmail')->name('confirm_email');
 
 Route::resource('user', "UserController");
-
+Route::resource('statuses', 'StatusesController', ['only' => ['store', 'destroy']]);    //  post处理创建微博的请求 DELETE处理删除请求
 
 Route::get('login', 'SessionsController@create')->name('login');    //  显示登录页
 Route::post('login', 'SessionsController@store')->name('login');   //  创建新回话（登录）
